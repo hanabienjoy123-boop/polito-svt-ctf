@@ -1,0 +1,110 @@
+(pwn_env) hanabi@polito:~/svt_ctf/round_3/strange-gadget$ pwn checksec ./strange-gadget 
+[*] '/home/hanabi/svt_ctf/round_3/strange-gadget/strange-gadget'
+    Arch:       amd64-64-little
+    RELRO:      Partial RELRO
+    Stack:      No canary found
+    NX:         NX unknown - GNU_STACK missing
+    PIE:        No PIE (0x400000)
+    Stack:      Executable    #not enable data execution prevention
+    RWX:        Has RWX segments
+
+    (pwn_env) hanabi@polito:~/svt_ctf/round_3/strange-gadget$ ROPgadget --binary ./strange-gadget 
+Gadgets information
+0x000000000040118d : jmp rsp //can be used to injected code and exection
+
+(gdb) info functions
+All defined functions:
+
+Non-debugging symbols:
+0x0000000000401030  printf@plt
+0x0000000000401040  gets@plt    //can be used to exploit
+0x0000000000401050  setvbuf@plt
+
+(gdb) x/100i 0x4011bd
+   0x4011bd:    push   %rbp
+   0x4011be:    mov    %rsp,%rbp
+   0x4011c1:    sub    $0x10,%rsp
+   0x4011c5:    mov    %edi,-0x4(%rbp)
+   0x4011c8:    mov    %rsi,-0x10(%rbp)
+   0x4011cc:    mov    $0x0,%eax
+   0x4011d1:    call   0x401142       //check if gets present
+   0x4011d6:    mov    $0x0,%eax
+   0x4011db:    call   0x401192       ////check if gets present
+   0x4011e0:    mov    $0x0,%eax
+   0x4011e5:    leave
+   0x4011e6:    ret
+   0x4011e7:    nopw   0x0(%rax,%rax,1)
+   0x4011f0:    push   %r15
+   0x4011f2:    lea    0x2c07(%rip),%r15        # 0x403e00
+   0x4011f9:    push   %r14
+   0x4011fb:    mov    %rdx,%r14
+   0x4011fe:    push   %r13
+   0x401200:    mov    %rsi,%r13
+   0x401203:    push   %r12
+   0x401205:    mov    %edi,%r12d
+   0x401208:    push   %rbp
+   0x401209:    lea    0x2bf8(%rip),%rbp        # 0x403e08
+   0x401210:    push   %rbx
+   0x401211:    sub    %r15,%rbp
+   0x401214:    sub    $0x8,%rsp
+   0x401218:    call   0x401000
+   0x40121d:    sar    $0x3,%rbp
+   0x401221:    je     0x40123e
+   0x401223:    xor    %ebx,%ebx
+   0x401225:    nopl   (%rax)
+   0x401228:    mov    %r14,%rdx
+   0x40122b:    mov    %r13,%rsi
+   0x40122e:    mov    %r12d,%edi
+   0x401231:    call   *(%r15,%rbx,8)
+   0x401235:    add    $0x1,%rbx
+--Type <RET> for more, q to quit, c to continue without paging--
+   0x401239:    cmp    %rbx,%rbp
+   0x40123c:    jne    0x401228
+   0x40123e:    add    $0x8,%rsp
+   0x401242:    pop    %rbx
+   0x401243:    pop    %rbp
+   0x401244:    pop    %r12
+   0x401246:    pop    %r13
+   0x401248:    pop    %r14
+   0x40124a:    pop    %r15
+   0x40124c:    ret
+   0x40124d:    nopl   (%rax)
+   0x401250:    ret
+
+
+   (gdb) x/20i 0x401142
+   0x401142:    push   %rbp
+   0x401143:    mov    %rsp,%rbp
+   0x401146:    mov    0x2ef3(%rip),%rax        # 0x404040 <stdout>
+   0x40114d:    mov    $0x0,%ecx
+   0x401152:    mov    $0x2,%edx
+   0x401157:    mov    $0x0,%esi
+   0x40115c:    mov    %rax,%rdi
+   0x40115f:    call   0x401050 <setvbuf@plt>
+   0x401164:    mov    0x2ee5(%rip),%rax        # 0x404050 <stdin>
+   0x40116b:    mov    $0x0,%ecx
+   0x401170:    mov    $0x2,%edx
+   0x401175:    mov    $0x0,%esi
+   0x40117a:    mov    %rax,%rdi
+   0x40117d:    call   0x401050 <setvbuf@plt>
+   0x401182:    nop
+   0x401183:    pop    %rbp
+   0x401184:    ret
+   0x401185:    push   %rbp
+   0x401186:    mov    %rsp,%rbp
+   0x401189:    push   %rbp
+
+   (gdb) x/20i 0x401192
+   0x401192:    push   %rbp
+   0x401193:    mov    %rsp,%rbp
+   0x401196:    sub    $0x20,%rsp       #allocate 32 byte on stack
+   0x40119a:    mov    $0x402004,%edi   #"Enter your input:"
+   0x40119f:    mov    $0x0,%eax
+   0x4011a4:    call   0x401030 <printf@plt>
+   0x4011a9:    lea    -0x20(%rbp),%rax
+   0x4011ad:    mov    %rax,%rdi
+   0x4011b0:    mov    $0x0,%eax
+   0x4011b5:    call   0x401040 <gets@plt>
+   0x4011ba:    nop
+   0x4011bb:    leave
+   0x4011bc:    ret

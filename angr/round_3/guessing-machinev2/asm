@@ -1,0 +1,69 @@
+Dump of assembler code for function main:
+   ; --- Stack Frame Setup & Canary Protection ---
+   0x00401213 <+0>:     push   %rbp
+   0x00401214 <+1>:     mov    %rsp,%rbp
+   0x00401217 <+4>:     sub    $0x40,%rsp           ; Allocate 64 bytes for local variables
+   0x0040121b <+8>:     mov    %fs:0x28,%rax        ; Fetch Stack Canary (Security Cookie) from thread control block
+   0x00401224 <+17>:    mov    %rax,-0x8(%rbp)      ; Place Canary on stack to guard the Return Address
+   0x00401228 <+21>:    xor    %eax,%eax
+
+   ; --- System Initialization ---
+   0x0040122f <+28>:    call   0x4011b2 <setup>     ; Call setup() (e.g., setvbuf to disable buffering)
+
+   ; --- Random Number Generation (The Secret Key) ---
+   0x00401234 <+33>:    mov    $0x0,%edi
+   0x00401239 <+38>:    call   0x401090 <time@plt>  ; Get current timestamp: time(NULL)
+   0x0040123e <+43>:    mov    %eax,%edi
+   0x00401240 <+45>:    call   0x401070 <srand@plt> ; Seed PRNG: srand(time)
+   0x00401245 <+50>:    call   0x4010c0 <rand@plt>  ; Generate random number: rand()
+   0x0040124a <+55>:    cltq                        ; Sign-extend EAX to RAX (32-bit to 64-bit)
+   0x0040124c <+57>:    mov    %rax,0x2e5d(%rip)    ; [!] Store the secret in global variable at 0x4040b0 <key>
+
+   ; --- User Input (Vulnerability Site) ---
+   0x00401253 <+64>:    movq   $0x0,-0x38(%rbp)     ; Initialize user guess variable to 0
+   0x0040125b <+72>:    mov    $0x402008,%edi       ; Load "First, what is your name:"
+   0x00401260 <+77>:    call   0x401030 <puts@plt>
+   0x0040126f <+92>:    mov    0x2e1a(%rip),%rdx    ; Load stdin stream
+   0x00401276 <+99>:    lea    -0x30(%rbp),%rax     ; Buffer address at RBP-0x30
+   0x0040127a <+103>:   mov    $0x1f,%esi           ; Limit input to 31 bytes (Size check present)
+   0x0040127f <+108>:   mov    %rax,%rdi
+   0x00401282 <+111>:   call   0x401080 <fgets@plt> ; Read user input into the stack buffer
+
+   ; --- Format String Vulnerability ---
+   0x00401291 <+126>:   lea    -0x30(%rbp),%rax
+   0x00401295 <+130>:   mov    %rax,%rdi            ; Pass user-controlled buffer as 1st argument to printf
+   0x00401298 <+133>:   mov    $0x0,%eax
+   0x0040129d <+138>:   call   0x401060 <printf@plt>; [VULN!] Format String Attack (Leak memory via %p, %x, etc.)
+
+   ; --- Guessing Logic ---
+   0x004012ac <+153>:   lea    -0x38(%rbp),%rax
+   0x004012b0 <+157>:   mov    %rax,%rsi            ; Destination address for scanf
+   0x004012b3 <+160>:   mov    $0x40207a,%edi       ; Format string "%ld"
+   0x004012bd <+170>:   call   0x4010b0 <scanf@plt> ; Capture user guess
+
+   ; --- Comparison Logic ---
+   0x004012c2 <+175>:   mov    -0x38(%rbp),%rdx     ; Retrieve the number you typed
+   0x004012c6 <+179>:   mov    0x2de3(%rip),%rax    ; [!] Retrieve the TRUE key from 0x4040b0
+   0x004012cd <+186>:   cmp    %rax,%rdx            ; Compare input vs. secret
+   0x004012d0 <+189>:   jne    0x4012e8             ; If not equal, branch to failure
+
+   ; --- Win Path (Exploited State) ---
+   0x004012d2 <+191>:   mov    $0x402080,%edi       ; Load "You guessed it!"
+   0x004012d7 <+196>:   call   0x401030 <puts@plt>
+   0x004012e1 <+206>:   call   0x401050 <system@plt>; Execute system("cat flag")
+   0x004012e6 <+211>:   jmp    0x401301
+
+   ; --- Fail Path (Leak & Exit) ---
+   0x004012e8 <+213>:   mov    0x2dc1(%rip),%rax    ; Fetch secret key again
+   0x004012ef <+220>:   mov    %rax,%rsi            ; Pass key as 2nd argument (data)
+   0x004012f2 <+223>:   mov    $0x4020d8,%edi       ; Format "The number was: %ld"
+   0x004012fc <+233>:   call   0x401060 <printf@plt>; Print the correct answer and terminate
+
+//analysis offset
+(pwn_env) hanabi@polito:~/svt_ctf/round_3/guessing-machinev2$ ./guessing-machine-v2 
+Welcome! If you can guess the number, you get the flag!
+First, what is your name:
+%x %x %x %x %x %x %x %x aaaa
+Welcome:
+1fa04643 0 1f91c5a4 8 0 0 0 25207825 aaaa #25207825: ascii % x%,so our input is located at offset 8
+Now, guess the number:

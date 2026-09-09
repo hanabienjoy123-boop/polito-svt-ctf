@@ -1,0 +1,62 @@
+Dump of assembler code for function main:
+   ; --- 栈帧准备与 Canary 保护 ---
+   0x000000000000132f <+0>:     push   %rbp
+   0x0000000000001330 <+1>:     mov    %rsp,%rbp
+   0x0000000000001333 <+4>:     sub    $0xa0,%rsp        ; 分配 0xa0 (160字节) 空间
+   0x000000000000133a <+11>:    mov    %fs:0x28,%rax     ; [Canary] 加载栈保护随机值
+   0x0000000000001343 <+20>:    mov    %rax,-0x8(%rbp)   ; 将 Canary 放入栈中
+   0x0000000000001347 <+24>:    xor    %eax,%eax
+
+   ; --- 初始化 ---
+   0x000000000000134e <+31>:    call   0x12ce <setup>    ; 基础配置
+
+   ; --- 打印提示 (Welcome 信息) ---
+   0x000000000000135a <+43>:    call   0x1050 <puts@plt> ; 打印一些文字
+   0x0000000000001366 <+55>:    call   0x1050 <puts@plt>
+   0x0000000000001372 <+67>:    call   0x1050 <puts@plt>
+
+   ; --- 核心漏洞：读取 Shellcode ---
+   0x0000000000001377 <+72>:    lea    -0x90(%rbp),%rax  ; rax 指向栈上的缓冲区 (偏移 0x90)
+   0x000000000000137e <+79>:    mov    $0x80,%edx        ; 允许读取 0x80 (128字节)
+   0x0000000000001383 <+84>:    mov    %rax,%rsi         ; 数据存入栈
+   0x0000000000001386 <+87>:    mov    $0x0,%edi         ; 从 stdin (文件描述符 0) 读取
+   0x000000000000138b <+92>:    call   0x10a0 <read@plt> ; 读取你的输入
+
+   ; --- 加载安全限制 (沙箱) ---
+   0x0000000000001395 <+102>:   call   0x11d5 <init_seccomp> ; [关键] 启用 seccomp 沙箱限制
+   0x000000000000139a <+107>:   mov    %rax,-0x98(%rbp)
+   0x00000000000013a1 <+114>:   cmpq   $0x0,-0x98(%rbp)
+   0x00000000000013a9 <+122>:   jne    0x13b2 <main+131>
+
+   ; --- 执行你输入的内容 ---
+   0x00000000000013b2 <+131>:   lea    -0x90(%rbp),%rdx  ; rdx 指向你刚才输入的数据起始地址
+   0x00000000000013b9 <+138>:   mov    $0x0,%eax
+   0x00000000000013be <+143>:   call   *%rdx             ; [核心] 跳转到栈上执行你的代码！
+
+   ; --- 清理与退出 ---
+   0x00000000000013cd <+158>:   call   0x1090 <seccomp_release@plt>
+   0x00000000000013db <+172>:   sub    %fs:0x28,%rcx     ; 检查 Canary 
+   0x00000000000013e4 <+181>:   je     0x13eb <main+188>
+   0x00000000000013e6 <+183>:   call   0x1080 <__stack_chk_fail@plt>
+   0x00000000000013eb <+188>:   leave
+   0x00000000000013ec <+189>:   ret
+
+   (pwn_env) hanabi@polito:~/svt_ctf/round_2/saas$ seccomp-tools dump ./saas 
+Welcome to the Shellcode as a Service!
+Just write your shellcode and we'll execute it for you!
+Be careful, we have some restrictions in place...
+sdasd
+ line  CODE  JT   JF      K
+=================================
+ 0000: 0x20 0x00 0x00 0x00000004  A = arch
+ 0001: 0x15 0x00 0x08 0xc000003e  if (A != ARCH_X86_64) goto 0010
+ 0002: 0x20 0x00 0x00 0x00000000  A = sys_number
+ 0003: 0x35 0x00 0x01 0x40000000  if (A < 0x40000000) goto 0005
+ 0004: 0x15 0x00 0x06 0xffffffff  if (A != 0xffffffff) goto 0011
+ 0005: 0x15 0x03 0x00 0x00000000  if (A == read) goto 0009
+ 0006: 0x15 0x02 0x00 0x00000001  if (A == write) goto 0009
+ 0007: 0x15 0x01 0x00 0x00000002  if (A == open) goto 0009
+ 0008: 0x15 0x00 0x02 0x00000003  if (A != close) goto 0011
+ 0009: 0x06 0x00 0x00 0x7fff0000  return ALLOW
+ 0010: 0x15 0x00 0x00 0x40000003  /* no-op */
+ 0011: 0x06 0x00 0x00 0x00000000  return KILL
