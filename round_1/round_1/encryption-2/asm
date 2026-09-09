@@ -1,0 +1,54 @@
+用来验证输入字符串是否与预存的加密数据匹配的汇编代码如下：
+code used to verify input string against stored encrypted data:
+# --- 函数序言 (Prologue) ---
+0x401122:    push   %rbp                 # 保存调用者的栈基址指针
+0x401123:    mov    %rsp,%rbp            # 设置当前函数的栈基址
+0x401126:    mov    %rdi,-0x18(%rbp)     # 将参数1 (输入字符串指针) 保存到栈中
+
+# --- 初始化循环变量 ---
+0x40112a:    movl   $0x0,-0x4(%rbp)      # 初始化循环计数器 i = 0
+0x401131:    jmp    0x401167             # 直接跳转到循环结束处的条件判断
+
+# --- 循环体开始 (Loop Body) ---
+0x401133:    mov    -0x4(%rbp),%eax      # 获取当前索引 i
+0x401136:    movslq %eax,%rdx            # 将 i 符号扩展为 64 位，存入 rdx
+0x401139:    mov    -0x18(%rbp),%rax     # 获取输入字符串的首地址
+0x40113d:    add    %rdx,%rax            # 计算当前字符地址: rax = string_base + i
+0x401140:    movzbl (%rax),%eax          # 加载当前字符: eax = input[i] (1字节)
+
+# --- 关键变换 (XOR) ---
+0x401143:    xor    $0x42,%eax           # 将当前字符与 0x42 (字符 'B') 进行异或
+0x401146:    movsbl %al,%edx             # 将异或后的结果保存到 edx
+
+# --- 加载预存密文数据 ---
+0x401149:    mov    -0x4(%rbp),%eax      # 重新获取索引 i
+0x40114c:    cltq                        # 扩展为 64 位 (rax)
+0x40114e:    movzbl 0x404030(%rax),%eax  # 获取内存中对应的加密字节: secret[i]
+0x401155:    movzbl %al,%eax             # 清理高位
+
+# --- 比较与分支 ---
+0x401158:    cmp    %eax,%edx            # 对比 (input[i] ^ 0x42) 与 secret[i]
+0x40115a:    je     0x401163             # 如果相等，说明当前字符正确，跳转到 i++
+0x40115c:    mov    $0x1,%eax            # 如果不相等，设置返回值为 1 (错误)
+0x401161:    jmp    0x401172             # 立即结束函数并返回
+
+# --- 循环控制与增加计数 ---
+0x401163:    addl   $0x1,-0x4(%rbp)      # 执行 i = i + 1
+0x401167:    cmpl   $0x1c,-0x4(%rbp)     # 检查 i 是否 <= 28 (十六进制 0x1c)
+0x40116b:    jle    0x401133             # 如果 i <= 28，继续下一轮循环
+
+# --- 成功返回 ---
+0x40116d:    mov    $0x0,%eax            # 循环正常结束，说明全匹配，返回 0 (正确)
+
+# --- 函数清理与返回 ---
+0x401172:    pop    %rbp                 # 恢复栈指针
+0x401173:    ret                         # 退出函数
+
+
+(gdb) x/29xb 0x404030
+0x404030:       0x31    0x34    0x36    0x39    0x31    0x73    0x2f    0x32
+0x404038:       0x2e    0x71    0x1d    0x71    0x2c    0x21    0x30    0x3b
+0x404040:       0x32    0x36    0x73    0x72    0x2c    0x1d    0x31    0x21
+0x404048:       0x2a    0x71    0x2f    0x76    0x3f
+
+###svt{s1mpl3_3ncrypt10n_sch3m4}

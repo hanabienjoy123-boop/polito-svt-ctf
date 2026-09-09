@@ -1,0 +1,74 @@
+key function used to check input
+#check input length:must equal to 16
+0x1290: push   %rbp                     # Save base pointer
+0x1291: push   %rbx                     # Save rbx (will hold string address)
+0x1292: mov    %rdi,%rbx                # Store input string pointer in rbx
+0x1295: sub    $0x8,%rsp                # Align stack
+0x1299: call   0x1040 <strlen@plt>      # Get input length (result in rax)
+0x129e: xor    %edx,%edx                # Default return value edx = 0 (Fail)
+0x12a0: cmp    $0x10,%rax               # Check if length == 16 (0x10)
+0x12a4: jne    0x12cd                   # If length != 16, jump to Fail
+
+#Palindrome-like check
+0x12a6: xor    %eax,%eax                # i = 0 (Loop counter)
+0x12a8: jmp    0x12ba                   # Jump to condition check
+
+# --- 循环体 ---
+0x12b0: add    $0x1,%rax                # i++
+0x12b4: cmp    $0x8,%rax                # If i == 8, first half is done
+0x12b8: je     0x12e0                   # If i == 8, jump to next stage
+
+0x12ba: mov    %rax,%rdx                # rdx = i
+0x12bd: neg    %rdx                     # rdx = -i
+0x12c0: movzbl 0xf(%rbx,%rdx,1),%esi    # esi = input[15 - i] (镜像位置)
+0x12c5: cmp    %sil,(%rbx,%rax,1)       # Compare input[i] with input[15 - i]
+0x12c9: je     0x12b0                   # If equal, continue loop
+0x12cb: xor    %edx,%edx                # If not equal, set edx = 0
+0x12cd: add    $0x8,%rsp                # Clean stack and exit (Fail)
+
+check first char
+0x12e0: movsbq (%rbx),%rbp              # rbp = input[0] (Sign-extend byte to quad)
+0x12e4: lea    0xd19(%rip),%rdi         # Load set "AEIOUaeiou" (at 0x2004)
+0x12eb: movsbl %bpl,%esi                # esi = input[0]
+0x12ef: call   0x1050 <strchr@plt>      # Check if input[0] is in "AEIOUaeiou"
+0x12f4: test   %rax,%rax                # If input[0] not found, rax is NULL
+0x12f7: je     0x12cb                   # If not found, jump to Fail
+
+# 获取 Linux 系统字符类型属性表 (__ctype_b_loc)
+0x12f9: call   0x1080 <__ctype_b_loc@plt>
+0x12fe: mov    %rax,%rdx                # rdx = address of pointer to ctype table
+0x1301: xor    %eax,%eax                # i = 0 (Reset counter for type check)
+0x1303: mov    (%rdx),%rcx              # rcx = base address of ctype table
+0x1306: jmp    0x1326                   # Start type check loop
+
+0x1310: cmp    $0x7,%rax                # If i <= 7
+0x1314: ja     0x1358                   # If i > 7, use different check logic
+0x1316: testb  $0x4,0x1(%rcx,%rbp,2)    # Check if char is Digit (ISdigit = 0x04)
+0x131b: je     0x12cd                   # If not a digit, Fail
+0x131d: add    $0x1,%rax                # i++
+0x1321: movsbq (%rbx,%rax,1),%rbp       # Load next character: rbp = input[i]
+
+# --- 奇偶判断逻辑 ---
+0x1326: mov    %eax,%edx                # edx = i
+0x1328: and    $0x1,%edx                # edx = i % 2
+0x132b: je     0x1310                   # If i is even, jump to 0x1310 (Digit check)
+
+0x132d: movzwl (%rcx,%rbp,2),%edx       # Get full type flags for current char
+0x1331: cmp    $0x7,%rax                # If i <= 7
+0x1335: jbe    0x1368                   # Jump to specialized alpha check
+0x1337: and    $0x4,%dh                 # Check high byte for ISalpha
+0x133a: je     0x12cb                   # If not Alpha, Fail
+0x133c: add    $0x1,%rax                # i++
+0x1340: cmp    $0x10,%rax               # Check if all 16 chars are done
+0x1344: jne    0x1321                   # Loop back if not finished
+
+Serial Key Requirements
+Exact Length: Must be exactly 16 characters
+Mirrored Symmetry: The string must be a mirror image (e.g., input[0] == input[15], input[1] == input[14]).
+Vowel Anchor: The first and last characters must be vowels (A, E, I, O, U in upper or lower case).
+
+Character Type Filter:
+Even Indices (2, 4, 6): Must be Digits (0-9).
+Odd Indices (1, 3, 5, 7): Must be Alphabetic (a-z, A-Z).
+
+a possible payload A1B2C3D44D3C2B1A

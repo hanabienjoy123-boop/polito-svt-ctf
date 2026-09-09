@@ -1,0 +1,57 @@
+# --- 函数序言 (Prologue) ---
+function used to verify input string against stored encrypted data:
+0x00401122:    push   %rbp                   # 保存调用者的栈基址
+0x00401123:    mov    %rsp,%rbp              # 设置当前函数的栈基址
+0x00401126:    mov    %rdi,-0x18(%rbp)       # 将第一个参数 (输入字符串指针) 存入栈
+
+# --- 循环初始化 ---
+0x0040112a:    movl   $0x0,-0x4(%rbp)        # 初始化循环变量 i = 0 (存放在 [rbp-4])
+0x00401131:    jmp    0x40116c               # 跳转到循环结尾处的条件检查
+
+# --- 循环体开始 ---
+0x00401133:    mov    -0x4(%rbp),%eax        # 将 i 加载到 eax
+0x00401136:    movslq %eax,%rdx              # 将 32 位 i 符号扩展为 64 位 rdx (用于地址计算)
+0x00401139:    mov    -0x18(%rbp),%rax       # 加载输入字符串的首地址到 rax
+0x0040113d:    add    %rdx,%rax              # rax = 字符串基址 + i (定位到当前字符 input[i])
+0x00401140:    movzbl (%rax),%eax            # 取出当前字符: eax = input[i]
+
+# --- 核心变换逻辑 ---
+0x00401143:    movsbl %al,%edx               # 将字符存入 edx
+0x00401146:    mov    -0x4(%rbp),%eax        # 重新获取索引 i
+0x00401149:    add    %edx,%eax              # 执行加法: eax = input[i] + i
+0x0040114b:    lea    0x1(%rax),%edx         # 巧妙利用 lea 指令实现再加 1: edx = eax + 1
+                                             # 此时 edx = input[i] + i + 1
+
+# --- 加载目标加密数据 ---
+0x0040114e:    mov    -0x4(%rbp),%eax        # 重新获取索引 i
+0x00401151:    cltq                          # 将 eax 扩展为 rax
+0x00401153:    movzbl 0x404030(%rax),%eax    # 从 0x404030 地址加载预存字节: eax = target[i]
+0x0040115a:    movzbl %al,%eax               # 清理寄存器高位
+
+# --- 结果对比 ---
+0x0040115d:    cmp    %eax,%edx              # 比较 (input[i] + i + 1) 与 target[i]
+0x0040115f:    je     0x401168               # 如果相等，说明当前字符匹配成功，跳到 i++ 处
+
+# --- 失败处理 ---
+0x00401161:    mov    $0x1,%eax              # 如果不相等，设置返回值为 1 (代表不匹配)
+0x00401166:    jmp    0x401177               # 跳转到函数清理并退出
+
+# --- 索引递增与条件检查 ---
+0x00401168:    addl   $0x1,-0x4(%rbp)        # 执行 i = i + 1
+0x0040116c:    cmpl   $0x1b,-0x4(%rbp)       # 检查 i 是否 <= 27 (十六进制 0x1b 为 27)
+0x00401170:    jle    0x401133               # 如果 i <= 27，则继续下一轮循环
+
+# --- 成功返回 ---
+0x00401172:    mov    $0x0,%eax              # 循环跑完说明全部匹配，设置返回值为 0
+
+# --- 函数清理 (Epilogue) ---
+0x00401177:    pop    %rbp                   # 恢复栈基址
+0x00401178:    ret                           # 返回调用者
+
+(gdb) x/28xb 0x404030
+0x404030 <flag>:        0x74    0x78    0x77    0x7f    0x6b    0x72    0x3b    0x6f
+0x404038 <flag+8>:      0x68    0x77    0x74    0x7a    0x82    0x81    0x6e    0x79
+0x404040 <flag+16>:     0x70    0x77    0x84    0x89    0x76    0x82    0x8a    0x77
+0x404048 <flag+24>:     0x7f    0x8f    0x89    0x99
+
+svt{fl4g_minus_i_equals_fun}

@@ -1,0 +1,15 @@
+Non-debugging symbols:
+0x0000000000400370  putchar@plt
+0x0000000000400380  puts@plt
+0x0000000000400390  nanosleep@plt
+0x00000000004003a0  fflush@plt
+0x00000000004003b0  exit@plt
+0x00000000004003c0  rand@plt
+(gdb) exit
+(pwn_env) hanabi@polito:~/svt_ctf/round_1/slow$ objdump -d ./slow | grep -B 5 "call.*400390"
+  4004e0:       48 69 c0 80 96 98 00    imul   $0x989680,%rax,%rax
+  4004e7:       48 89 45 f8             mov    %rax,-0x8(%rbp)
+  4004eb:       48 8d 45 f0             lea    -0x10(%rbp),%rax
+  4004ef:       be 00 00 00 00          mov    $0x0,%esi
+  4004f4:       48 89 c7                mov    %rax,%rdi
+  4004f7:       e8 94 fe ff ff          call   400390 <nanosleep@plt>

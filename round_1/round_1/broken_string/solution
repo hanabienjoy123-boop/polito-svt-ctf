@@ -1,0 +1,52 @@
+hanabi@polito:~/svt_ctf/round_1/broken_string$ strings broken_string 
+/lib64/ld-linux-x86-64.so.2
+puts
+__libc_start_main
+__cxa_finalize
+printf
+libc.so.6
+GLIBC_2.2.5
+GLIBC_2.34
+_ITM_deregisterTMCloneTable
+__gmon_start__
+_ITM_registerTMCloneTable
+PTE1
+u+UH
+0t_b3aten}
+Everything is fine here
+Keep searching
+svt{bro
+Do not give up!
+mma8vx
+aiufj89asjf8avj0%s
+k3n_bu7_n
+9*3$"
+GCC: (Ubuntu 13.2.0-23ubuntu4) 13.2.0
+.shstrtab
+.interp
+.note.gnu.property
+.note.gnu.build-id
+.note.ABI-tag
+.gnu.hash
+.dynsym
+.dynstr
+.gnu.version
+.gnu.version_r
+.rela.dyn
+.rela.plt
+.init
+.plt.got
+.plt.sec
+.text
+.fini
+.rodata
+.eh_frame_hdr
+.eh_frame
+.init_array
+.fini_array
+.dynamic
+.data
+.bss
+.comment
+
+flag = svt{brok3n_bu7_n0t_b3aten}

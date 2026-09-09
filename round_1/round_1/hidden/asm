@@ -1,0 +1,128 @@
+(gdb) info files
+Symbols from "/home/hanabi/svt_ctf/round_1/hidden/hidden".
+Local exec file:
+        `/home/hanabi/svt_ctf/round_1/hidden/hidden', file type elf64-x86-64.
+        Entry point: 0x402545
+        0x00000000004002a8 - 0x00000000004002c4 is .interp
+        0x00000000004002c4 - 0x00000000004002e8 is .note.gnu.build-id
+        0x00000000004002e8 - 0x0000000000400308 is .note.ABI-tag
+        0x0000000000400308 - 0x0000000000400338 is .gnu.hash
+        0x0000000000400338 - 0x0000000000400b30 is .dynsym
+        0x0000000000400b30 - 0x0000000000400e77 is .dynstr
+        0x0000000000400e78 - 0x0000000000400f22 is .gnu.version
+        0x0000000000400f28 - 0x0000000000400fd8 is .gnu.version_r
+        0x0000000000400fd8 - 0x0000000000401038 is .rela.dyn
+        0x0000000000401038 - 0x00000000004017d0 is .rela.plt
+        0x0000000000402000 - 0x000000000040201a is .init
+        0x0000000000402020 - 0x0000000000402540 is .plt
+        0x0000000000402540 - 0x0000000000407dc2 is .text
+        0x0000000000407dc4 - 0x0000000000407dcd is .fini
+        0x0000000000408000 - 0x000000000040a108 is .rodata
+        0x000000000040a108 - 0x000000000040a434 is .eh_frame_hdr
+        0x000000000040a438 - 0x000000000040b5b8 is .eh_frame
+        0x000000000040cde8 - 0x000000000040cdf0 is .init_array
+        0x000000000040cdf0 - 0x000000000040cdf8 is .fini_array
+        0x000000000040cdf8 - 0x000000000040cff8 is .dynamic
+        0x000000000040cff8 - 0x000000000040d000 is .got
+        0x000000000040d000 - 0x000000000040d2a0 is .got.plt
+        0x000000000040d2a0 - 0x000000000040d2a8 is .data
+        0x000000000040d2c0 - 0x00000000004246b0 is .bss
+(gdb) info functions
+All defined functions:
+
+Non-debugging symbols:
+0x0000000000402030  __strcat_chk@plt
+0x0000000000402040  getenv@plt
+0x0000000000402050  __snprintf_chk@plt
+0x0000000000402060  raise@plt
+0x0000000000402070  free@plt
+0x0000000000402080  __vfprintf_chk@plt
+0x0000000000402090  __errno_location@plt
+0x00000000004020a0  unlink@plt
+0x00000000004020b0  strncpy@plt
+0x00000000004020c0  strncmp@plt
+0x00000000004020d0  strcpy@plt
+0x00000000004020e0  ftello@plt
+0x00000000004020f0  inflate@plt
+0x0000000000402100  mkdir@plt
+0x0000000000402110  ferror@plt
+0x0000000000402120  fread@plt
+0x0000000000402130  mbstowcs@plt
+0x0000000000402140  readlink@plt
+0x0000000000402150  setenv@plt
+0x0000000000402160  getpid@plt
+0x0000000000402170  fclose@plt
+0x0000000000402180  opendir@plt
+0x0000000000402190  stpcpy@plt
+0x00000000004021a0  rmdir@plt
+0x00000000004021b0  strlen@plt
+0x00000000004021c0  __lxstat@plt
+0x00000000004021d0  setbuf@plt
+0x00000000004021e0  strchr@plt
+0x00000000004021f0  snprintf@plt
+0x0000000000402200  dirname@plt
+0x0000000000402210  strncat@plt
+0x0000000000402220  __realpath_chk@plt
+0x0000000000402230  closedir@plt
+0x0000000000402240  __strdup@plt
+0x0000000000402250  __libc_start_main@plt
+0x0000000000402260  memcmp@plt
+0x0000000000402270  wcsncpy@plt
+0x0000000000402280  calloc@plt
+0x0000000000402290  strcmp@plt
+0x00000000004022a0  signal@plt
+0x00000000004022b0  __memcpy_chk@plt
+0x00000000004022c0  feof@plt
+--Type <RET> for more, q to quit, c to continue without paging--
+0x00000000004022d0  __gmon_start__@plt
+0x00000000004022e0  clearerr@plt
+0x00000000004022f0  realpath@plt
+0x0000000000402300  memcpy@plt
+0x0000000000402310  prctl@plt
+0x0000000000402320  inflateEnd@plt
+0x0000000000402330  kill@plt
+0x0000000000402340  __xpg_basename@plt
+0x0000000000402350  fileno@plt
+0x0000000000402360  __xstat@plt
+0x0000000000402370  readdir@plt
+0x0000000000402380  dlopen@plt
+0x0000000000402390  malloc@plt
+0x00000000004023a0  fflush@plt
+0x00000000004023b0  nl_langinfo@plt
+0x00000000004023c0  __isoc99_sscanf@plt
+0x00000000004023d0  __vsnprintf_chk@plt
+0x00000000004023e0  dlclose@plt
+0x00000000004023f0  realloc@plt
+0x0000000000402400  __strcpy_chk@plt
+0x0000000000402410  mkdtemp@plt
+0x0000000000402420  setlocale@plt
+0x0000000000402430  fchmod@plt
+0x0000000000402440  inflateInit_@plt
+0x0000000000402450  __fread_chk@plt
+0x0000000000402460  waitpid@plt
+0x0000000000402470  fseeko@plt
+0x0000000000402480  fopen@plt
+0x0000000000402490  perror@plt
+0x00000000004024a0  strtok@plt
+0x00000000004024b0  unsetenv@plt
+0x00000000004024c0  execvp@plt
+0x00000000004024d0  strcat@plt
+0x00000000004024e0  fwrite@plt
+0x00000000004024f0  __fprintf_chk@plt
+0x0000000000402500  strerror@plt
+0x0000000000402510  dlsym@plt
+0x0000000000402520  fork@plt
+0x0000000000402530  dlerror@plt
+(gdb) exit
+
+hanabi@polito:~/svt_ctf/round_1/hidden$ strings /home/hanabi/svt_ctf/round_1/hidden/hidden | grep "pydata"
+pydata
+
+Evidence Summary: Why this is a PyInstaller Bundle
+Presence of the pydata Magic Tag: The pydata string is a specific marker used by the PyInstaller bootloader to locate the start of the compressed archive (containing Python bytecode and the interpreter) appended to the end of the executable.
+
+Zlib Compression Symbols: The inclusion of inflate, inflateInit, and inflateEnd in the function list indicates the binary possesses the capability to decompress data. PyInstaller uses these to extract the bundled Python environment into memory or a temporary directory.
+
+Dynamic Loader Dependency: The heavy use of dlopen and dlsym proves the binary is a "loader." It doesn't contain the core logic itself; instead, it is designed to dynamically load a Python shared library (libpython.so) at runtime.
+
+Temporary File System Interaction: Functions like mkdir, setenv, and unlink are characteristic of PyInstaller’s "One-File" mode. The bootloader must create a temporary runtime directory (usually /tmp/_MEIxxxxxx), set environment variables to point the Python interpreter to that location, and clean up the files upon exit.

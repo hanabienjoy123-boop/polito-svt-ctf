@@ -1,0 +1,89 @@
+# --- Prologue and Argument Check ---
+0x555555555070:  push   %rbx                  # Save rbx register (callee-saved)
+0x555555555071:  cmp    $0x1,%edi             # Check if argc <= 1
+0x555555555074:  jle    0x5555555550b4        # If no arguments provided, jump to usage hint
+
+# --- Input Retrieval and Length Validation ---
+0x555555555076:  mov    0x8(%rsi),%rbx        # rbx = argv[1] (pointer to user input string)
+0x55555555507a:  mov    %rbx,%rdi             # Move string pointer to rdi for strlen argument
+0x55555555507d:  call   0x555555555040 <strlen@plt> # Call strlen to get input length
+0x555555555082:  cmp    $0x10,%rax            # Check if length == 16 (0x10)
+0x555555555086:  jne    0x5555555550a4        # If length != 16, jump to failure logic
+
+# --- Core Verification Call ---
+0x555555555088:  mov    %rbx,%rdi             # Pass argv[1] as the first argument to verify function
+0x55555555508b:  call   0x5555555551e0        # [CRITICAL] Call verification function at 0x51e0
+0x555555555090:  test   %al,%al               # Check return value (al register)
+0x555555555092:  je     0x5555555550a4        # If return value is 0 (Failure), jump to failure logic
+
+# --- Success Path ---
+0x555555555094:  lea    0xf86(%rip),%rdi      # Load address of "Success" string (0x555555556021)
+0x55555555509b:  call   0x555555555030 <puts@plt> # Print success message (e.g., "Correct!")
+0x5555555550a0:  xor    %eax,%eax             # Set return value to 0 (Success exit code)
+0x5555555550a2:  pop    %rbx                  # Restore rbx
+0x5555555550a3:  ret                          # Exit program
+
+# --- Failure Path ---
+0x5555555550a4:  lea    0xf6b(%rip),%rdi      # Load address of "Error" string (0x555555556016)
+0x5555555550ab:  call   0x555555555030 <puts@plt> # Print failure message (e.g., "Invalid key")
+0x5555555550b0:  xor    %eax,%eax             # Set return value to 0
+0x5555555550b2:  jmp    0x5555555550a2        # Jump to cleanup and exit
+
+# --- Usage Hint Path ---
+0x5555555550b4:  mov    (%rsi),%rsi           # Get program name (argv[0])
+0x5555555550b7:  lea    0xf46(%rip),%rdi      # Load address of usage hint string (0x555555556004)
+0x5555555550be:  xor    %eax,%eax             # Clear eax for printf (0 floating point args)
+0x5555555550c0:  call   0x555555555050 <printf@plt> # Print "Usage: ./crackme-1 <key>"
+0x5555555550c5:  mov    $0x1,%eax             # Set return value to 1 (Error exit code)
+0x5555555550ca:  pop    %rbx                  # Restore rbx
+0x5555555550cb:  ret                          # Exit
+
+
+=======================================================================
+# --- Byte-by-Byte Character Comparison ---
+0x5555555551e0: cmpb   $0x35, (%rdi)      ; Check 1st char: '5' (0x35)
+0x5555555551e3: jne    0x555555555248     ; If not match, jump to failure
+0x5555555551e5: cmpb   $0x42, 0x1(%rdi)   ; Check 2nd char: 'B' (0x42)
+0x5555555551e9: jne    0x555555555248     ; If not match, jump to failure
+0x5555555551eb: cmpb   $0x31, 0x2(%rdi)   ; Check 3rd char: '1' (0x31)
+0x5555555551ef: jne    0x555555555248
+0x5555555551f1: cmpb   $0x33, 0x3(%rdi)   ; Check 4th char: '3' (0x33)
+0x5555555551f5: jne    0x555555555248
+0x5555555551f7: cmpb   $0x34, 0x4(%rdi)   ; Check 5th char: '4' (0x34)
+0x5555555551fb: jne    0x555555555248
+0x5555555551fd: cmpb   $0x39, 0x5(%rdi)   ; Check 6th char: '9' (0x39)
+0x555555555201: jne    0x555555555248
+0x555555555203: cmpb   $0x37, 0x6(%rdi)   ; Check 7th char: '7' (0x37)
+0x555555555207: jne    0x555555555248
+0x555555555209: cmpb   $0x37, 0x7(%rdi)   ; Check 8th char: '7' (0x37)
+0x55555555520d: jne    0x555555555248
+0x55555555520f: cmpb   $0x31, 0x8(%rdi)   ; Check 9th char: '1' (0x31)
+0x555555555213: jne    0x555555555248
+0x555555555215: cmpb   $0x33, 0x9(%rdi)   ; Check 10th char: '3' (0x33)
+0x555555555219: jne    0x555555555248
+0x55555555521b: cmpb   $0x35, 0xa(%rdi)   ; Check 11th char: '5' (0x35)
+0x55555555521f: jne    0x555555555248
+0x555555555221: cmpb   $0x45, 0xb(%rdi)   ; Check 12th char: 'E' (0x45)
+0x555555555225: jne    0x555555555248
+0x555555555227: cmpb   $0x37, 0xc(%rdi)   ; Check 13th char: '7' (0x37)
+0x55555555522b: jne    0x555555555248
+0x55555555522d: cmpb   $0x44, 0xd(%rdi)   ; Check 14th char: 'D' (0x44)
+0x555555555231: jne    0x555555555248
+0x555555555233: cmpb   $0x31, 0xe(%rdi)   ; Check 15th char: '1' (0x31)
+0x555555555237: jne    0x555555555248
+0x555555555239: cmpb   $0x33, 0xf(%rdi)   ; Check 16th char: '3' (0x33)
+
+# --- Success Path ---
+0x55555555523d: mov    $0x1, %eax         ; Set return value to 1 (True/Success)
+0x555555555242: jne    0x555555555248     ; Double check last comparison, jump to failure if fail
+0x555555555244: ret                       ; Return to main
+
+# --- Failure Path ---
+0x555555555248: sub    $0x8, %rsp         ; Align stack
+0x55555555524c: lea    0xdc3(%rip), %rdi  ; Load "Wrong" string address
+0x555555555253: call   puts@plt           ; Print "Wrong!"
+0x555555555258: xor    %eax, %eax         ; Set return value to 0 (False/Failure)
+0x55555555525a: add    $0x8, %rsp         ; Restore stack
+0x55555555525e: ret                       ; Return to main
+
+final_key: 5B134977135E7D13
